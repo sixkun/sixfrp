@@ -1,0 +1,6 @@
+include:
+  - .cnb/custom-domain-checks.yml
+  - .cnb/tag-push.yml
+  - .cnb/main-push.yml
+  - .cnb/web-nilaway.yml
+  - .cnb/security-scan.yml

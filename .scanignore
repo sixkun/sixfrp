@@ -1,0 +1,15 @@
+# CNB 安全扫描忽略清单（gitignore 语法，相对仓库根目录）
+# 仅排除非本仓库源码 / 生成产物，避免密钥与成分分析(SCA)误报。
+# 被 .cnb/security/code_scan_config.yml 的 ignoreFrom 引用。
+# 文档: https://docs.cnb.cool/en/security/syntax-reference.md
+
+# 内嵌的第三方前端构建产物（由 CI 下载/构建，非本仓库源码）
+cmd/frpps/caddyrunner/ztna/frontend/
+
+# 构建输出与发布产物
+build/
+dist/
+*.tar.gz
+
+# Node 依赖（scripts 使用 bun/npm 时生成）
+node_modules/

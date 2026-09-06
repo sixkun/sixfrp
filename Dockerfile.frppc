@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+# frppc 客户端镜像（在原生 BUILDPLATFORM 上交叉编译，避免 QEMU 模拟）
+FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine AS builder
+
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOEXPERIMENT=jsonv2 \
+    GOPRIVATE=cnb.cool/gradii/goravel,cnb.cool/gradii/frp
+
+ARG VERSION=dev
+# 由 buildx 自动注入：目标平台信息
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+# git：go 拉取 cnb.cool 私有模块需通过 git 克隆
+RUN apk add --no-cache git
+
+WORKDIR /build
+COPY . .
+# GOARM 取变体号（v6/v7 -> 6/7），对 amd64/arm64 为空且被忽略
+# netrc 以 secret 挂载，仅构建期可见，不写入镜像层，用于拉取私有 Go 模块
+RUN --mount=type=secret,id=netrc,target=/root/.netrc \
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} \
+    go build -trimpath -buildvcs=false \
+      --ldflags "-s -w -X haokun-panel/haokun/version.Version=${VERSION} -X haokun-panel/haokun/version.ReleaseArch=${TARGETARCH} -X haokun-panel/haokun/version.DockerImage=true" \
+      -o frppc ./cmd/frppc
+
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+COPY --from=builder /build/frppc /app/frppc
+
+ENTRYPOINT ["/app/frppc"]

@@ -1,0 +1,22 @@
+# Docker 构建上下文忽略项
+.git
+.idea
+.vscode
+.cursor
+.claude
+.husky
+.playwright-mcp
+
+node_modules
+build
+tmp
+storage
+vendor
+
+*.tar.gz
+.DS_Store
+.env
+.env.*
+!.env.master.example
+!.env.frpps.example
+!.env.frppc.example

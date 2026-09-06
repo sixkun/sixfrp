@@ -1,0 +1,23 @@
+[
+  {
+    "name": "a1",
+    "value": {
+      "ANTHROPIC_BASE_URL": "xxx",
+      "ANTHROPIC_AUTH_TOKEN": "yyy"
+    }
+  },
+  {
+    "name": "a2",
+    "value": {
+      "ANTHROPIC_BASE_URL": "xxx",
+      "ANTHROPIC_AUTH_TOKEN": "yyy"
+    }
+  },
+  {
+    "name": "a3",
+    "value": {
+      "ANTHROPIC_BASE_URL": "xxx",
+      "ANTHROPIC_AUTH_TOKEN": "yyy"
+    }
+  }
+]

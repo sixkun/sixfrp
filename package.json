@@ -1,0 +1,13 @@
+{
+  "name": "haokun-panel",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
