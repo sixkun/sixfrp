@@ -19,7 +19,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.54.0
-	google.golang.org/grpc v1.82.0
+	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.11
 	gorm.io/gorm v1.31.2 // indirect
 	k8s.io/apimachinery v0.28.8
