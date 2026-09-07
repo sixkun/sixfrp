@@ -1,24 +1,10 @@
-module haokun-panel
+module cnb.cool/sixkun/sixfrp/v2
 
 go 1.26
 
 replace github.com/goravel/framework => cnb.cool/gradii/goravel-framework v1.18.1-0.20260809131947-b7590987cfa7
 
 replace github.com/fatedier/frp => cnb.cool/gradii/frp v0.71.1-0.20260830082329-53f442ad830b
-
-// The two agent proto contracts, each in a module of its own so protos/ no
-// longer lives in the panel repo:
-//
-//	sixfrp-client-proto   frppc <-> master, meant to be published with the agent
-//	sixfrp-server-proto   frpps <-> master, private
-//
-// Both are private on cnb.cool today, so cnb.cool/sixkun is in GOPRIVATE in the
-// .cnb/*.yml jobs — without it a cold build asks goproxy.cn first and only works
-// by falling through its 404.
-//
-// Uncomment a replace to develop against a local checkout.
-//replace cnb.cool/sixkun/sixfrp-client-proto => ../sixfrp-client-proto
-//replace cnb.cool/sixkun/sixfrp-server-proto => ../sixfrp-server-proto
 
 require (
 	cnb.cool/sixkun/sixfrp-client-proto v1.0.0
