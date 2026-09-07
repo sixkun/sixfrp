@@ -21,7 +21,7 @@ replace github.com/fatedier/frp => cnb.cool/gradii/frp v0.71.1-0.20260830082329-
 //replace cnb.cool/sixkun/sixfrp-server-proto => ../sixfrp-server-proto
 
 require (
-	cnb.cool/sixkun/sixfrp-client-proto v0.0.0-20260902141332-90b1fc3beb16
+	cnb.cool/sixkun/sixfrp-client-proto v1.0.0
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/fatedier/frp v0.71.0
 	github.com/gofiber/contrib/v3/websocket v1.1.1
