@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/haokun/defs"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/haokun/defs"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

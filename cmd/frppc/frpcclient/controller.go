@@ -1,8 +1,8 @@
 package frpcclient
 
 import (
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/utils"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/utils"
 )
 
 type clientController struct {

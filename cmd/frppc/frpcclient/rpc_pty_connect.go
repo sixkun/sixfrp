@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"haokun-panel/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

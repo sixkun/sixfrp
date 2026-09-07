@@ -10,8 +10,8 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/samber/lo"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/utils"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/utils"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

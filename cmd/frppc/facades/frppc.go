@@ -1,8 +1,8 @@
 package facades
 
 import (
-	"haokun-panel/cmd/frppc/contracts"
-	"haokun-panel/cmd/frppc/defs"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/contracts"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/defs"
 )
 
 func FrpClientService() contracts.Service {

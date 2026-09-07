@@ -12,8 +12,8 @@ import (
 	"github.com/fatedier/frp/pkg/policy/security"
 	"github.com/samber/lo"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/utils"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/utils"
 )
 
 func NewClientHandler(commonCfg *v1.ClientCommonConfig, proxyCfgs []v1.ProxyConfigurer, visitorCfgs []v1.VisitorConfigurer) (ClientHandler, error) {

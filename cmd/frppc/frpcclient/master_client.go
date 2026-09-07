@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	appwsgrpc "haokun-panel/haokun/grpc/support/wsgrpc"
+	appwsgrpc "cnb.cool/sixkun/sixfrp/v2/haokun/grpc/support/wsgrpc"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

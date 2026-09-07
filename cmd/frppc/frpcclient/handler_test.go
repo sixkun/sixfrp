@@ -10,8 +10,8 @@ import (
 	"github.com/goravel/framework/foundation"
 	"github.com/goravel/framework/log"
 
-	"haokun-panel/cmd/frppc/config"
-	"haokun-panel/utils"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/config"
+	"cnb.cool/sixkun/sixfrp/v2/utils"
 )
 
 // TestMain boots a minimal goravel foundation (config + log only) so

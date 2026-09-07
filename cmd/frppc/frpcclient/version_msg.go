@@ -1,7 +1,7 @@
 package frpcclient
 
 import (
-	"haokun-panel/haokun/version"
+	"cnb.cool/sixkun/sixfrp/v2/haokun/version"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

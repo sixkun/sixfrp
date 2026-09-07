@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	frppcproviders "haokun-panel/cmd/frppc/providers"
+	frppcproviders "cnb.cool/sixkun/sixfrp/v2/cmd/frppc/providers"
 
 	"github.com/goravel/framework/console"
 	"github.com/goravel/framework/contracts/foundation"

@@ -4,7 +4,7 @@ import (
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 	"google.golang.org/protobuf/proto"
 
-	"haokun-panel/utils/systemevent"
+	"cnb.cool/sixkun/sixfrp/v2/utils/systemevent"
 )
 
 // withAggregateCount returns a copy of event whose payload_json carries an

@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"haokun-panel/cmd/frppc/contracts"
-	"haokun-panel/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/contracts"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
 )
 
 type ClientRPCRunner struct {

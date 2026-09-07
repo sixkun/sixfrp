@@ -4,9 +4,9 @@ import (
 	"github.com/goravel/framework/contracts/binding"
 	"github.com/goravel/framework/contracts/foundation"
 
-	"haokun-panel/cmd/frppc/defs"
-	"haokun-panel/cmd/frppc/frpcclient"
-	"haokun-panel/cmd/frppc/runners"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/defs"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/frpcclient"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/runners"
 )
 
 type FrppcServiceProvider struct {

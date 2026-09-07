@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/cmd/frppc/streamlog"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/streamlog"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

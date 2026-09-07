@@ -7,9 +7,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/haokun/defs"
-	"haokun-panel/utils/systemevent"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/haokun/defs"
+	"cnb.cool/sixkun/sixfrp/v2/utils/systemevent"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

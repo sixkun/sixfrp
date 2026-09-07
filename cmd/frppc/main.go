@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"haokun-panel/cmd/frppc/bootstrap"
-	"haokun-panel/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/bootstrap"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
 )
 
 func main() {

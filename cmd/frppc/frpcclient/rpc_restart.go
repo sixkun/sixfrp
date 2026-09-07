@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/utils/selfupgrade"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/utils/selfupgrade"
 
 	pb "cnb.cool/sixkun/sixfrp-client-proto/sixfrp/client_pb"
 )

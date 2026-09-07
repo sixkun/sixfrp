@@ -6,7 +6,7 @@ import (
 
 	"github.com/goravel/framework/support/carbon"
 
-	"haokun-panel/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
 )
 
 // Boot loads configuration after command-line environment overrides are set.

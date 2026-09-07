@@ -1,7 +1,7 @@
 package config
 
 import (
-	"haokun-panel/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
 )
 
 func loadFrppc() {

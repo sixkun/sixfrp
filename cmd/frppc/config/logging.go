@@ -1,8 +1,8 @@
 package config
 
 import (
-	"haokun-panel/cmd/frppc/facades"
-	"haokun-panel/cmd/frppc/streamlog"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/facades"
+	"cnb.cool/sixkun/sixfrp/v2/cmd/frppc/streamlog"
 )
 
 func loadLogging() {
