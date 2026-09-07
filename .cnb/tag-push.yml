@@ -111,9 +111,19 @@
             if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
               git fetch --unshallow origin || true
             fi
+            # tag push 为 detached HEAD，本地通常没有 refs/tags/<tag>，先从 origin 取回
+            # tag 对象（保留 annotated tag）；取不到则回退用当前 HEAD 建立 tag ref
+            if ! git rev-parse -q --verify "refs/tags/${CNB_BRANCH}" >/dev/null; then
+              git fetch --force origin "refs/tags/${CNB_BRANCH}:refs/tags/${CNB_BRANCH}" || true
+            fi
+            if git rev-parse -q --verify "refs/tags/${CNB_BRANCH}" >/dev/null; then
+              SRC="refs/tags/${CNB_BRANCH}"
+            else
+              SRC="HEAD"
+            fi
             git push --force \
               "https://x-access-token:${DEPLOY_GITHUB_SIXFRP_TOKEN}@github.com/sixkun/sixfrp.git" \
-              "refs/tags/${CNB_BRANCH}"
+              "${SRC}:refs/tags/${CNB_BRANCH}"
 
     # 依赖 release-pipeline 的独立流水线：构建并推送 frppc Docker 镜像
     - name: frppc-docker-pipeline
@@ -178,15 +188,15 @@
         # 直接在两个 registry 间复制多架构 manifest，无需重新构建或本地拉取
         - name: mirror-frppc-image-to-github
           script: |
-            if [ -z "${DEPLOY_GITHUB_SIXFRP_TOKEN}" ]; then
-              echo "DEPLOY_GITHUB_SIXFRP_TOKEN 未配置，跳过 GHCR 镜像同步"
+            if [ -z "${DEPLOY_GITHUB_SIXFRP_REGISTRY_TOKEN}" ]; then
+              echo "DEPLOY_GITHUB_SIXFRP_REGISTRY_TOKEN 未配置，跳过 GHCR 镜像同步"
               exit 0
             fi
             for TAG in "${IMAGE_VERSION}" latest; do
               echo "Mirroring ${FRPPC_IMAGE}:${TAG} -> ${SIXFRP_IMAGE}:${TAG}"
               skopeo copy \
                 --src-creds "${CNB_TOKEN_USER_NAME}:${CNB_TOKEN}" \
-                --dest-creds "sixkun:${DEPLOY_GITHUB_SIXFRP_TOKEN}" \
+                --dest-creds "sixkun:${DEPLOY_GITHUB_SIXFRP_REGISTRY_TOKEN}" \
                 --multi-arch all \
                 "docker://${FRPPC_IMAGE}:${TAG}" \
                 "docker://${SIXFRP_IMAGE}:${TAG}"
