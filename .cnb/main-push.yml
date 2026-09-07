@@ -8,6 +8,8 @@ main:
       # 导入密钥仓库文件为环境变量（提供 CNB_PRIVATE_REPO_TOKEN，用于拉取私有 Go 模块）
       imports:
         - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+        - https://cnb.cool/sixkun/secret/-/blob/main/github/secret.yml
+#          DEPLOY_GITHUB_SIXFRP_TOKEN
       env:
         GOEXPERIMENT: jsonv2
         GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
@@ -87,3 +89,18 @@ main:
           script: |
             echo "Cleanup netrc..."
             rm -f ~/.netrc
+
+        # 将 main 分支镜像推送到 GitHub（github.com/sixkun/sixfrp）
+        - name: mirror-to-github
+          script: |
+            if [ -z "${DEPLOY_GITHUB_SIXFRP_TOKEN}" ]; then
+              echo "DEPLOY_GITHUB_SIXFRP_TOKEN 未配置，跳过 GitHub 镜像"
+              exit 0
+            fi
+            # CNB 默认可能为浅克隆，GitHub 拒绝浅历史推送，先补全历史
+            if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+              git fetch --unshallow origin || true
+            fi
+            git push --force \
+              "https://x-access-token:${DEPLOY_GITHUB_SIXFRP_TOKEN}@github.com/sixkun/sixfrp.git" \
+              "HEAD:refs/heads/${CNB_BRANCH}"

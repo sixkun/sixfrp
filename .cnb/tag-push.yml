@@ -6,6 +6,7 @@
       # 导入密钥仓库文件为环境变量（提供 CNB_PRIVATE_REPO_TOKEN，用于拉取私有 Go 模块）
       imports:
         - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+        - https://cnb.cool/sixkun/secret/-/blob/main/github/secret.yml
       env:
         GOEXPERIMENT: jsonv2
         GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
@@ -66,9 +67,12 @@
 
               ### frppc Docker 镜像（多平台支持：linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64）
               ```bash
-              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc:${VERSION_NO_V}
-              # 或使用 latest
-              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc:latest
+              # CNB 制品库
+              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${VERSION_NO_V}
+              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+              # GitHub Container Registry 镜像
+              docker pull ghcr.io/sixkun/sixfrp:${VERSION_NO_V}
+              docker pull ghcr.io/sixkun/sixfrp:latest
               ```
             preRelease: false
             latest: true
@@ -96,6 +100,21 @@
             data:
               version: $VERSION_NO_V
 
+        # 将 tag 镜像推送到 GitHub（github.com/sixkun/sixfrp）
+        - name: mirror-tag-to-github
+          script: |
+            if [ -z "${DEPLOY_GITHUB_SIXFRP_TOKEN}" ]; then
+              echo "DEPLOY_GITHUB_SIXFRP_TOKEN 未配置，跳过 GitHub 镜像"
+              exit 0
+            fi
+            # CNB 默认可能为浅克隆，GitHub 拒绝浅历史推送，先补全历史
+            if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+              git fetch --unshallow origin || true
+            fi
+            git push --force \
+              "https://x-access-token:${DEPLOY_GITHUB_SIXFRP_TOKEN}@github.com/sixkun/sixfrp.git" \
+              "refs/tags/${CNB_BRANCH}"
+
     # 依赖 release-pipeline 的独立流水线：构建并推送 frppc Docker 镜像
     - name: frppc-docker-pipeline
       docker:
@@ -104,9 +123,11 @@
         - name: docker
       imports:
         - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+        - https://cnb.cool/sixkun/secret/-/blob/main/github/secret.yml
       env:
         GOEXPERIMENT: jsonv2
-        FRPPC_IMAGE: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc
+        FRPPC_IMAGE: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}
+        SIXFRP_IMAGE: ghcr.io/sixkun/sixfrp
         GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
       stages:
         - name: resolve-image-version
@@ -128,7 +149,7 @@
         - name: install-dependencies
           script: |
             apt-get update
-            apt-get install -y git curl jq
+            apt-get install -y git curl jq skopeo
 
         # 构建并推送多平台 frppc 镜像，tag 使用去掉 v 前缀的版本号 + latest
         - name: build-and-push-frppc-docker
@@ -152,3 +173,22 @@
 
             rm -f /tmp/frppc-netrc
             echo "Successfully pushed ${FRPPC_IMAGE}:${IMAGE_VERSION} and ${FRPPC_IMAGE}:latest for linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64"
+
+        # 将 frppc 镜像同步到 GitHub Container Registry（ghcr.io/sixkun/sixfrp）
+        # 直接在两个 registry 间复制多架构 manifest，无需重新构建或本地拉取
+        - name: mirror-frppc-image-to-github
+          script: |
+            if [ -z "${DEPLOY_GITHUB_SIXFRP_TOKEN}" ]; then
+              echo "DEPLOY_GITHUB_SIXFRP_TOKEN 未配置，跳过 GHCR 镜像同步"
+              exit 0
+            fi
+            for TAG in "${IMAGE_VERSION}" latest; do
+              echo "Mirroring ${FRPPC_IMAGE}:${TAG} -> ${SIXFRP_IMAGE}:${TAG}"
+              skopeo copy \
+                --src-creds "${CNB_TOKEN_USER_NAME}:${CNB_TOKEN}" \
+                --dest-creds "sixkun:${DEPLOY_GITHUB_SIXFRP_TOKEN}" \
+                --multi-arch all \
+                "docker://${FRPPC_IMAGE}:${TAG}" \
+                "docker://${SIXFRP_IMAGE}:${TAG}"
+            done
+            echo "Successfully mirrored ${SIXFRP_IMAGE}:${IMAGE_VERSION} and ${SIXFRP_IMAGE}:latest to GHCR"
