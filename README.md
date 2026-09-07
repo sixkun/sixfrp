@@ -38,7 +38,7 @@
 - **实时日志推流** — 按需向控制台推送 frpc 运行日志，问题排查无需登录设备。
 - **自升级与远程重启** — 控制端可下发升级 / 重启指令；支持二进制原地替换（re-exec / respawn）或自定义外部升级脚本。
 - **稳健的连接** — gRPC 双向流断线自动重连；系统事件（启动 / 停止）经去抖后上报，避免重连风暴。
-- **多种接入传输** — 原生 gRPC，或 gRPC over WebSocket（`ws` / `wss`），适配各类网络与反代环境。
+- **安全接入传输** — 接入 sixfrp 平台统一走 gRPC over WebSocket TLS（`wss`），穿透防火墙与反向代理，全程加密。
 - **全平台交叉编译** — Linux / macOS / Windows / FreeBSD / OpenBSD，覆盖 amd64、arm64、armv7、loong64、riscv64、mips 系列等架构。
 
 ## 支持的协议
@@ -98,11 +98,13 @@ flowchart LR
 
 ### 2. 运行
 
-在 sixfrp 控制台创建客户端后，你会得到一对 **客户端 ID** 与 **密钥**，以及 master 的 **RPC 地址**：
+在 sixfrp 控制台创建客户端后，你会得到一对 **客户端 ID** 与 **密钥**，以及 master 的 **接入地址**（形如 `wss://<master域名>/grpc-ws`）。三者齐备即可一行命令启动：
 
 ```bash
-frppc -i <客户端ID> -s <密钥> --rpc-url <master地址>
+frppc -i <客户端ID> -s <密钥> --rpc-url wss://<master域名>/grpc-ws
 ```
+
+启动后，frppc 会通过 `wss` 连接 master 并注册，随后自动拉取隧道配置、拉起 frp 连接，并常驻监听控制台下发的指令。无需在本地编写任何 frp 配置文件——隧道的增删改全部在控制台完成，frppc 会自动同步。
 
 参数说明：
 
@@ -110,31 +112,46 @@ frppc -i <客户端ID> -s <密钥> --rpc-url <master地址>
 | --- | --- | --- |
 | `-i` | 客户端 ID（平台分配） | ✅ |
 | `-s` | 客户端密钥（平台分配） | ✅ |
-| `--rpc-url` | master 的 gRPC 地址，缺省 `grpc://127.0.0.1:9001` | ⬜ |
+| `--rpc-url` | master 接入地址，见下方说明 | ✅ |
 
 也可以完全通过环境变量启动（不带任何 flag），详见[配置](#配置)。
 
-**RPC 地址支持的 scheme：**
+**接入地址（`--rpc-url` / `FRPPC_RPC_URL`）：**
 
-| 形式 | 含义 |
-| --- | --- |
-| `grpc://host:port` | 原生 gRPC（默认） |
-| `ws://host:port/grpc-ws` | gRPC over WebSocket |
-| `wss://host:port/grpc-ws` | 经 TLS 的 WebSocket |
-| `host:port` | 裸地址，自动补全为 `grpc://`；若端口为 `3000` 则推断为 `ws://host:3000/grpc-ws` |
+sixfrp 平台的 master 仅通过 **gRPC over WebSocket TLS（`wss`）** 对外提供接入，统一走 `443` 端口、路径 `/grpc-ws`，穿透各类防火墙与反向代理最为稳妥：
+
+```
+wss://<master域名>/grpc-ws
+```
+
+> 其它 scheme（`grpc://` 明文、`ws://` 非 TLS）仅用于本地开发 / 自建 master 的调试，生产接入 sixfrp 平台请统一使用 `wss`。
 
 ### 3. Docker
 
-镜像已内置交叉编译，可直接以环境变量注入身份：
+官方多架构镜像（`linux/amd64, arm/v6, arm/v7, arm64`）已发布到两个仓库，任选其一：
+
+```bash
+# CNB 制品库
+docker pull docker.cnb.cool/sixkun/sixfrp:latest
+
+# GitHub Container Registry
+docker pull ghcr.io/sixkun/sixfrp:latest
+```
+
+以环境变量注入身份即可运行（将 `:latest` 换成具体版本号如 `2.0.0` 可锁定版本）：
+
+```bash
+docker run -d --name frppc --restart unless-stopped \
+  -e FRPPC_ID=<客户端ID> \
+  -e FRPPC_SECRET=<密钥> \
+  -e FRPPC_RPC_URL=wss://<master域名>/grpc-ws \
+  docker.cnb.cool/sixkun/sixfrp:latest
+```
+
+也可从源码自行构建镜像：
 
 ```bash
 docker build -f Dockerfile.frppc -t sixfrp/frppc .
-
-docker run -d --name frppc \
-  -e FRPPC_ID=<客户端ID> \
-  -e FRPPC_SECRET=<密钥> \
-  -e FRPPC_RPC_URL=<master地址> \
-  sixfrp/frppc
 ```
 
 > Docker 镜像内不支持二进制原地自升级，请通过更新镜像来升级。
@@ -154,7 +171,7 @@ docker run -d --name frppc \
 | `FRPPC_ENABLED` | `true` | 是否在启动时连接 master。设为 `false` 可让二进制保持静默（便于本地调试）。 |
 | `FRPPC_ID` | — | 平台分配的客户端 ID，与密钥一起用于每次 RPC 鉴权。 |
 | `FRPPC_SECRET` | — | 平台分配的客户端密钥。 |
-| `FRPPC_RPC_URL` | `grpc://127.0.0.1:9001` | master 的 gRPC 地址，scheme 见上表。 |
+| `FRPPC_RPC_URL` | `grpc://127.0.0.1:9001` | master 接入地址。接入 sixfrp 平台请使用 `wss://<master域名>/grpc-ws`；默认值仅用于本地开发。 |
 | `FRPPC_SYNC_INTERVAL_SECONDS` | `30` | 周期性重新同步隧道配置的间隔（秒）；启动时会额外拉取一次。 |
 
 ### 远程功能开关
