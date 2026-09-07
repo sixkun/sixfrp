@@ -1,0 +1,89 @@
+main:
+  push:
+    - name: build-nightly
+      runner:
+        cpus: 4
+      docker:
+        image: golang:1.26.1-bookworm
+      # 导入密钥仓库文件为环境变量（提供 CNB_PRIVATE_REPO_TOKEN，用于拉取私有 Go 模块）
+      imports:
+        - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+      env:
+        GOEXPERIMENT: jsonv2
+        GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
+      stages:
+        - name: install-dependencies
+          script: |
+            apt-get update
+            apt-get install -y git curl jq nodejs npm
+            npm install -g bun
+            go version
+            bun --version
+
+        - name: setup-go-private-auth
+          script: |
+            printf "machine cnb.cool\nlogin %s\npassword %s\n" "cnb" "$CNB_PRIVATE_REPO_TOKEN" > ~/.netrc
+            chmod 600 ~/.netrc
+
+        # 拉取远端 tags（排除 nightly，避免 git describe 基于 nightly 计算版本号）
+        - name: fetch-tags
+          script: |
+            git fetch --tags --force --no-tags origin 'refs/tags/v*:refs/tags/v*'
+            git tag -d nightly 2>/dev/null || true
+
+        # 生成 dev 版本号
+        - name: generate-dev-version
+          script: |
+            DEV_VERSION=$(bun run scripts/build/generate-version.ts)
+            echo "##[set-output devVersion=$DEV_VERSION]"
+          exports:
+            devVersion: devVersion
+
+        # 构建 frppc（nightly 使用精简平台集，加快构建）
+        - name: build-frppc
+          script: |
+            export VERSION=$devVersion
+            export PLATFORMS="darwin/arm64,linux/amd64,linux/arm64,windows/amd64"
+            echo "Building frppc with VERSION=$VERSION"
+            bun run scripts/build-target.ts frppc
+
+        # 生成 summary.yml
+        - name: merge-summaries
+          script: |
+            echo "Merging summaries..."
+            bun run scripts/merge-summaries.ts
+
+        # 创建 Nightly Release
+        - name: create-nightly-release
+          type: git:release
+          options:
+            tag: nightly
+            title: "sixfrp Nightly ($devVersion)"
+            description: |
+              ## sixfrp frppc Nightly Build
+
+              **版本**: $devVersion
+              **构建者**: $CNB_BUILD_USER
+              **Commit**: $CNB_COMMIT
+              **Branch**: $CNB_BRANCH
+
+              ### 包含构建产物
+              - frppc (darwin/arm64, linux/amd64, linux/arm64, windows/amd64)
+            preRelease: true
+            latest: false
+            overlying: false
+
+        # 上传所有构建产物到 Nightly Release
+        - name: upload-artifacts-to-release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: nightly
+            attachments:
+              - "build/frppc/*.tar.gz"
+              - "build/summary.yml"
+
+        # Clean up netrc
+        - name: cleanup
+          script: |
+            echo "Cleanup netrc..."
+            rm -f ~/.netrc

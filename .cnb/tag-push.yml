@@ -1,0 +1,154 @@
+"v*.*.*":
+  tag_push:
+    - name: release-pipeline
+      docker:
+        image: golang:1.26.1-bookworm
+      # 导入密钥仓库文件为环境变量（提供 CNB_PRIVATE_REPO_TOKEN，用于拉取私有 Go 模块）
+      imports:
+        - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+      env:
+        GOEXPERIMENT: jsonv2
+        GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
+
+      stages:
+        - name: echo build info
+          script: echo "$CNB_BUILD_USER 通过正式版本 $CNB_BRANCH 触发了 $CNB_EVENT 事件"
+
+        - name: install-dependencies
+          script: |
+            apt-get update
+            apt-get install -y git curl jq nodejs npm
+            npm install -g bun
+            go version
+            bun --version
+
+        - name: setup-go-private-auth
+          script: |
+            printf "machine cnb.cool\nlogin %s\npassword %s\n" "cnb" "$CNB_PRIVATE_REPO_TOKEN" > ~/.netrc
+            chmod 600 ~/.netrc
+
+        # 构建 frppc（全平台）
+        - name: build-frppc
+          script: |
+            export VERSION=${CNB_BRANCH}
+            export PLATFORMS="darwin/amd64,darwin/arm64,freebsd/amd64,linux/amd64,linux/arm,linux/arm/v7,linux/arm64,linux/loong64,linux/mips,linux/mips64,linux/mips64le,linux/mipsle,linux/riscv64,openbsd/amd64,windows/amd64,windows/arm64"
+            echo "Building frppc with VERSION=$VERSION for all platforms"
+            bun run scripts/build-target.ts frppc
+
+        # 生成 summary.yml
+        - name: merge-summaries
+          script: |
+            echo "Merging summaries..."
+            bun run scripts/merge-summaries.ts
+
+        # 计算去掉 v 前缀的版本号，作为 frppc Docker 镜像 tag
+        - name: resolve-image-version
+          script: |
+            VERSION_NO_V="${CNB_BRANCH#v}"
+            echo "frppc docker image version: $VERSION_NO_V"
+            echo "##[set-output versionNoV=$VERSION_NO_V]"
+          exports:
+            versionNoV: VERSION_NO_V
+
+        # 创建 Release
+        - name: create-release
+          type: git:release
+          options:
+            title: $CNB_BRANCH
+            description: |
+              ## sixfrp Release $CNB_BRANCH
+
+              - 构建者: $CNB_BUILD_USER
+              - Commit: $CNB_COMMIT
+
+              ### 包含构建产物
+              - frppc (全平台: darwin/linux/freebsd/openbsd/windows × amd64/arm64/arm/armv7/loong64/mips*/riscv64)
+
+              ### frppc Docker 镜像（多平台支持：linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64）
+              ```bash
+              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc:${VERSION_NO_V}
+              # 或使用 latest
+              docker pull ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc:latest
+              ```
+            preRelease: false
+            latest: true
+
+        # Clean up netrc
+        - name: cleanup
+          script: |
+            echo "Cleanup netrc..."
+            rm -f ~/.netrc
+
+        # 上传所有构建产物到 Release
+        - name: upload-artifacts-to-release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: ${CNB_BRANCH}
+            attachments:
+              - "build/frppc/*.tar.gz"
+              - "build/summary.yml"
+
+        # 通知 frppc-docker-pipeline：release 已就绪，并传递去掉 v 前缀的版本号
+        - name: notify-frppc-docker-pipeline
+          type: cnb:resolve
+          options:
+            key: release-ready
+            data:
+              version: $VERSION_NO_V
+
+    # 依赖 release-pipeline 的独立流水线：构建并推送 frppc Docker 镜像
+    - name: frppc-docker-pipeline
+      docker:
+        image: oven/bun:1
+      services:
+        - name: docker
+      imports:
+        - https://cnb.cool/gradii/secret/-/blob/main/gradii/go-fetch-private.yml
+      env:
+        GOEXPERIMENT: jsonv2
+        FRPPC_IMAGE: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frppc
+        GOPRIVATE: cnb.cool/gradii/goravel,cnb.cool/gradii/frp,cnb.cool/sixkun
+      stages:
+        - name: resolve-image-version
+          script: |
+            VERSION_NO_V="${CNB_BRANCH#v}"
+            echo "frppc docker image version: $VERSION_NO_V"
+            echo "##[set-output versionNoV=$VERSION_NO_V]"
+          exports:
+            versionNoV: IMAGE_VERSION
+
+        # 等待 release-pipeline resolve，并读取其传递的版本号（去掉 v 前缀）
+        - name: await-release
+          type: cnb:await
+          options:
+            key: release-ready
+          exports:
+            version: IMAGE_VERSION
+
+        - name: install-dependencies
+          script: |
+            apt-get update
+            apt-get install -y git curl jq
+
+        # 构建并推送多平台 frppc 镜像，tag 使用去掉 v 前缀的版本号 + latest
+        - name: build-and-push-frppc-docker
+          script: |
+            echo "Building frppc docker image ${FRPPC_IMAGE}:${IMAGE_VERSION} (and :latest)"
+            echo "$CNB_TOKEN" | docker login docker.cnb.cool -u "$CNB_TOKEN_USER_NAME" --password-stdin
+
+            # 生成 netrc，供 Docker 构建期以 secret 挂载拉取私有 Go 模块
+            printf "machine cnb.cool\nlogin %s\npassword %s\n" "cnb" "$CNB_PRIVATE_REPO_TOKEN" > /tmp/frppc-netrc
+            chmod 600 /tmp/frppc-netrc
+
+            docker buildx build \
+              --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+              --build-arg VERSION=v${IMAGE_VERSION} \
+              --secret id=netrc,src=/tmp/frppc-netrc \
+              -f Dockerfile.frppc \
+              --push \
+              -t ${FRPPC_IMAGE}:${IMAGE_VERSION} \
+              -t ${FRPPC_IMAGE}:latest \
+              .
+
+            rm -f /tmp/frppc-netrc
+            echo "Successfully pushed ${FRPPC_IMAGE}:${IMAGE_VERSION} and ${FRPPC_IMAGE}:latest for linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64"
