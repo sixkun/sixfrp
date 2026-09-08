@@ -10,6 +10,11 @@ import (
 func Boot() contractsfoundation.Application {
 	return foundation.Setup().
 		WithCommands(Commands).
+		WithCommandsFilter(func() []string {
+			return []string{
+				"list",
+			}
+		}).
 		WithProviders(Providers).
 		WithConfig(config.Boot).
 		Create()

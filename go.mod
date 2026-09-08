@@ -2,8 +2,6 @@ module cnb.cool/sixkun/sixfrp/v2
 
 go 1.26
 
-replace github.com/goravel/framework => cnb.cool/gradii/goravel-framework v1.18.1-0.20260809131947-b7590987cfa7
-
 replace github.com/fatedier/frp => cnb.cool/gradii/frp v0.71.1-0.20260830082329-53f442ad830b
 
 require (
