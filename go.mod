@@ -2,8 +2,6 @@ module cnb.cool/sixkun/sixfrp/v2
 
 go 1.26
 
-replace github.com/fatedier/frp => cnb.cool/gradii/frp v0.71.1-0.20260830082329-53f442ad830b
-
 require (
 	cnb.cool/sixkun/sixfrp-client-proto v1.0.0
 	github.com/creack/pty v1.1.24 // indirect
