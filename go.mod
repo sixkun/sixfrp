@@ -2,6 +2,8 @@ module cnb.cool/sixkun/sixfrp/v2
 
 go 1.26
 
+replace github.com/goravel/framework => cnb.cool/gradii/goravel-framework v1.18.1-0.20260809131947-b7590987cfa7
+
 require (
 	cnb.cool/sixkun/sixfrp-client-proto v1.0.0
 	github.com/creack/pty v1.1.24 // indirect

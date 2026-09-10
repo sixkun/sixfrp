@@ -7,6 +7,8 @@ atomicgo.dev/keyboard v0.2.9/go.mod h1:BC4w9g00XkxH/f1HXhW2sXmJFOCWbKn9xrOunSFtE
 atomicgo.dev/schedule v0.1.0 h1:nTthAbhZS5YZmgYbb2+DH8uQIZcTlIrd4eYr3UQxEjs=
 atomicgo.dev/schedule v0.1.0/go.mod h1:xeUa3oAkiuHYh8bKiQBRojqAMq3PXXbJujjb0hw8pEU=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+cnb.cool/gradii/goravel-framework v1.18.1-0.20260809131947-b7590987cfa7 h1:IhqKMFW+cmorapgtFgzc+PCRA3X816UWde5okeGZvLs=
+cnb.cool/gradii/goravel-framework v1.18.1-0.20260809131947-b7590987cfa7/go.mod h1:xmT+tLgweQXZoFqnDWE7YYgxMxhs3x72e5m6PHfW9S4=
 cnb.cool/sixkun/sixfrp-client-proto v1.0.0 h1:CWlhMDCYFzdEZ9J10b+7SGsegKldpoRVqZ4XYO+fYY0=
 cnb.cool/sixkun/sixfrp-client-proto v1.0.0/go.mod h1:Zzv/07VBfYrkIhCOl1BC2O4wt4FU7F8Gs9YhysE+8b4=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
@@ -175,8 +177,6 @@ github.com/gookit/color v1.4.2/go.mod h1:fqRyamkC1W8uxl+lxCQxOT09l/vYfZ+QeiX3rKQ
 github.com/gookit/color v1.5.0/go.mod h1:43aQb+Zerm/BWh2GnrgOQm7ffz7tvQXEKV6BFMl7wAo=
 github.com/gookit/color v1.6.0 h1:JjJXBTk1ETNyqyilJhkTXJYYigHG24TM9Xa2M1xAhRA=
 github.com/gookit/color v1.6.0/go.mod h1:9ACFc7/1IpHGBW8RwuDm/0YEnhg3dwwXpoMsmtyHfjs=
-github.com/goravel/framework v1.18.0 h1:TFiLAAYcKGkJG4K9qcSGhzTIAUFvzp/APCumxN55shg=
-github.com/goravel/framework v1.18.0/go.mod h1:7nTfWdu987t+MmB1s+TtqbuJJLngmjCjsMbw3FQLNcA=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
 github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
