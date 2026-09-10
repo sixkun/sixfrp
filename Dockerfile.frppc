@@ -20,10 +20,14 @@ WORKDIR /build
 COPY . .
 # GOARM 取变体号（v6/v7 -> 6/7），对 amd64/arm64 为空且被忽略
 # netrc 以 secret 挂载，仅构建期可见，不写入镜像层，用于拉取私有 Go 模块
+#
+# -X 的包路径必须是本次构建图里真实存在的包。此处曾写作 haokun-panel/haokun/version，
+# 而本模块是 cnb.cool/sixkun/sixfrp/v2，该包并不在 ./cmd/frppc 的依赖图中，
+# 于是三个 -X 被静默忽略，所有 Docker 构建出的 frppc 版本号都是空的。
 RUN --mount=type=secret,id=netrc,target=/root/.netrc \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} \
     go build -trimpath -buildvcs=false \
-      --ldflags "-s -w -X haokun-panel/haokun/version.Version=${VERSION} -X haokun-panel/haokun/version.ReleaseArch=${TARGETARCH} -X haokun-panel/haokun/version.DockerImage=true" \
+      --ldflags "-s -w -X cnb.cool/sixkun/sixfrp/v2/haokun/version.Version=${VERSION} -X cnb.cool/sixkun/sixfrp/v2/haokun/version.ReleaseArch=${TARGETARCH} -X cnb.cool/sixkun/sixfrp/v2/haokun/version.DockerImage=true" \
       -o frppc ./cmd/frppc
 
 FROM alpine:latest

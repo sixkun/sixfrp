@@ -4,10 +4,13 @@ import "time"
 
 // Version and BuildTime are injected at build time via
 //
-//	-ldflags "-X haokun-panel/haokun/version.Version=... -X haokun-panel/haokun/version.BuildTime=..."
+//	-ldflags "-X cnb.cool/sixkun/sixfrp/v2/haokun/version.Version=... \
+//	          -X cnb.cool/sixkun/sixfrp/v2/haokun/version.BuildTime=..."
 //
-// (see scripts/build/builder.ts). They default to dev values for un-stamped
-// local builds.
+// (see scripts/build/builder.ts and Dockerfile.frppc). The path must be this
+// package's real import path: -X against a package outside the build graph is
+// silently ignored, leaving these at their defaults with no error. They default
+// to dev values for un-stamped local builds.
 var (
 	Version     = "dev"
 	BuildTime   = ""

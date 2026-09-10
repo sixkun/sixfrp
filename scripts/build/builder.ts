@@ -54,12 +54,19 @@ export async function build(config: BuildConfig, spec: BuildSpec) {
     // runtime.GOARCH is just "arm" for both and would collide.
     const releaseArch = platform.suffix ?? platform.goarch;
 
+    // The -X package path must be a package that actually exists in this
+    // build's graph. It previously read haokun-panel/haokun/version, which is
+    // not in cmd/frppc's graph for module cnb.cool/sixkun/sixfrp/v2, so all
+    // three -X flags were silently ignored and every released binary reported
+    // an empty version — which the master reads to decide upgrade eligibility.
+    const versionPkg = "cnb.cool/sixkun/sixfrp/v2/haokun/version";
+
     const result = run(
       "go",
       [
         "build",
         "-trimpath",
-        `-ldflags=-s -w -X haokun-panel/haokun/version.Version=${config.version} -X haokun-panel/haokun/version.BuildTime=${config.buildTime} -X haokun-panel/haokun/version.ReleaseArch=${releaseArch}`,
+        `-ldflags=-s -w -X ${versionPkg}.Version=${config.version} -X ${versionPkg}.BuildTime=${config.buildTime} -X ${versionPkg}.ReleaseArch=${releaseArch}`,
         "-o",
         outputPath,
         ".",
