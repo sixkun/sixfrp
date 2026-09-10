@@ -32,6 +32,10 @@ RUN --mount=type=secret,id=netrc,target=/root/.netrc \
 
 FROM alpine:latest
 
+# GHCR 依赖此 label 把镜像关联到 GitHub 仓库（namespace 必须与 ghcr.io/sixkun/sixfrp 一致）。
+# label 不会跨 stage 继承，必须写在最终 stage；skopeo copy 复制原 manifest，同步到 GHCR 后依然保留。
+LABEL org.opencontainers.image.source="https://github.com/sixkun/sixfrp"
+
 RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
